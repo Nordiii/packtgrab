@@ -13,29 +13,32 @@
 public class Start {
     public static void main(String[] args)
     {
-
+        System.out.println("Checking properties file");
         if(!checkProperties())
         {
             System.out.println("Creating new user.properties");
             if(!createProperties())
                 System.out.println("Failed to create File");
-
         }
 
-        Properties prop = getProperties();
 
+        Properties prop = getProperties();
+        System.out.println("Opening Webclient");
         try (final WebClient webClient = new WebClient(BrowserVersion.CHROME)) {
             webClient.getOptions().setJavaScriptEnabled(false);
             webClient.getOptions().setUseInsecureSSL(true);
 
+            System.out.println("Accessing packtpub.com");
             HtmlPage login = webClient.getPage("https://www.packtpub.com/#");
 
+            System.out.println("Logging in");
             HtmlForm form = login.getHtmlElementById("packt-user-login-form");
 
             form.getInputByName("email").setValueAttribute(prop.getProperty("email"));
             form.getInputByName("password").setValueAttribute(prop.getProperty("password"));
             form.getInputByName("op").click();
 
+            System.out.println("Logged in, accessing free books");
             HtmlPage freePage = webClient.getPage("https://www.packtpub.com/packt/offers/free-learning");
 
             System.out.println("Free book: "+freePage.querySelector(".dotd-title").getTextContent().replaceAll("\t","").replaceAll("\n",""));
@@ -75,9 +78,8 @@ public class Start {
         finally
         {
             sc.close();
-            return checkProperties();
         }
-
+        return checkProperties();
     }
 
     private static Properties getProperties()
