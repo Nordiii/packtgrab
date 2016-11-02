@@ -5,6 +5,10 @@ import java.util.Scanner;
 
 public class Start {
     public static void main(String[] args) {
+        /*
+         * Check if user.properties exists
+         * False = create new one
+         */
         System.out.println("Checking properties file");
         if (!checkProperties()) {
             System.out.println("Creating new user.properties");
@@ -12,19 +16,26 @@ public class Start {
                 System.out.println("Failed to create File");
         }
 
-        Packtpub site = null;
         Properties prop = getProperties();
+
+        Packtpub site = null;
+        /*
+         * Try block for Packtpub as it throws IOExceptions
+         */
         try {
+
             site = new Packtpub(prop.getProperty("email"), prop.getProperty("password"));
 
+            //Try to login when failed exit with an IOException
             if (!site.login()) {
                 System.out.println("Wasn't able to login");
-                throw new Exception();
+                throw new IOException();
             }
+            //Try to claim the book
             if (site.getFreeBook())
                 System.out.println("Successfully claimed");
 
-        } catch (Exception e) {
+        } catch (IOException ignored) {
 
         } finally {
             if (site != null)

@@ -5,9 +5,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import java.io.IOException;
 
-/**
- * Created by Nordiii on 02.11.2016.
- */
 public class Packtpub {
     private final WebClient webClient;
 
@@ -20,7 +17,7 @@ public class Packtpub {
     private final String password;
 
 
-    public Packtpub(String email, String password) throws IOException {
+    public Packtpub(String email, String password) {
         this.email = email;
         this.password = password;
         System.out.println("Opening Webclient");
