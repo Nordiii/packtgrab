@@ -1,7 +1,10 @@
+package de.packethub;
+
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -16,11 +19,13 @@ public class Packtpub {
     private final String email;
     private final String password;
 
+    private final Logger logger;
 
-    public Packtpub(String email, String password) {
+    public Packtpub(String email, String password, Logger logger) {
+        this.logger = logger;
         this.email = email;
         this.password = password;
-        System.out.println("Opening Webclient");
+        logger.info("Opening Webclient");
         webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getOptions().setJavaScriptEnabled(false);
         webClient.getOptions().setUseInsecureSSL(true);
@@ -28,31 +33,29 @@ public class Packtpub {
 
     }
 
-    public boolean login()throws IOException {
+    public boolean login() throws IOException {
 
-            System.out.println("Accessing packtpub.com");
-            HtmlPage login = webClient.getPage(defaultPage);
+        logger.info("Accessing packtpub.com");
+        HtmlPage login = webClient.getPage(defaultPage);
 
-            System.out.println("Logging in");
-            HtmlForm form = login.getHtmlElementById(loginFormID);
+        logger.info("Logging in");
+        HtmlForm form = login.getHtmlElementById(loginFormID);
 
-            form.getInputByName("email").setValueAttribute(email);
-            form.getInputByName("password").setValueAttribute(password);
-           return form.getInputByName("op").click().getUrl().toString().equals(defaultPage+"/index");
+        form.getInputByName("email").setValueAttribute(email);
+        form.getInputByName("password").setValueAttribute(password);
+        return form.getInputByName("op").click().getUrl().toString().equals(defaultPage + "/index");
     }
 
-    public boolean getFreeBook() throws IOException
-    {
+    public boolean getFreeBook() throws IOException {
         HtmlPage freePage = webClient.getPage(freeBooksPage);
 
-        System.out.println("Free book: "+freePage.querySelector(".dotd-title").getTextContent().replaceAll("\t","").replaceAll("\n",""));
+        logger.info("Free book: " + freePage.querySelector(".dotd-title").getTextContent().replaceAll("\t", "").replaceAll("\n", ""));
 
-       return webClient.getPage(defaultPage+freePage.querySelector(".twelve-days-claim").getAttributes().getNamedItem("href").getNodeValue())
+        return webClient.getPage(defaultPage + freePage.querySelector(".twelve-days-claim").getAttributes().getNamedItem("href").getNodeValue())
                 .getUrl().toString().equals(afterClaim);
     }
 
-    public void closeWebClient()
-    {
+    public void closeWebClient() {
         webClient.close();
     }
 

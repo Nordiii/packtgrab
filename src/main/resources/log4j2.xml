@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+    <Properties>
+        <Property  name="Path">logs</Property>
+        <Property  name="File">packetHub.log</Property>
+    </Properties>
+    <Appenders>
+        <File name="FILE" fileName="${Path}/${File}" append="true">
+            <PatternLayout pattern="%-5p | %d{dd-MM-yyyy} | %m%n"/>
+        </File>
+        <Console name="STDOUT" target="SYSTEM OUT">
+            <PatternLayout pattern="%-5p | %d{dd-MM-yyyy} | %m%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="de.packethub" level="info"/>
+        <Root level="info">
+            <AppenderRef ref="STDOUT"/>
+            <AppenderRef ref="FILE"/>
+        </Root>
+    </Loggers>
+</Configuration>

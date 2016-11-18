@@ -1,49 +1,61 @@
+package de.packethub;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.util.Properties;
 import java.util.Scanner;
 
 public class Start {
+    private static final Logger logger = LogManager.getLogger("PacketHub");
+
     public static void main(String[] args) {
         /*
          * Check if user.properties exists
          * False = create new one
          */
-        System.out.println("Checking properties file");
+        logger.info("Checking properties file");
         if (!checkProperties()) {
-            System.out.println("Creating new user.properties");
+            logger.info("Creating new user.properties");
             if (!createProperties())
-                System.out.println("Failed to create File");
+                logger.warn("Failed to create File");
         }
 
         Properties prop = getProperties();
+        claimBookJob(prop);
+        logger.warn("-");
 
+    }
+
+    private static void claimBookJob(Properties prop) {
         Packtpub site = null;
-        /*
-         * Try block for Packtpub as it throws IOExceptions
+         /*
+         * Try block for de.packethub.Packtpub as it throws IOExceptions
          */
         try {
 
-            site = new Packtpub(prop.getProperty("email"), prop.getProperty("password"));
+            site = new Packtpub(prop.getProperty("email"), prop.getProperty("password"), logger);
 
             //Try to login when failed exit with an IOException
             if (!site.login()) {
-                System.out.println("Wasn't able to login");
+                logger.error("Wasn't able to login");
                 throw new IOException();
             }
             //Try to claim the book
             if (site.getFreeBook())
-                System.out.println("Successfully claimed");
+                logger.info("Successfully claimed");
 
         } catch (IOException ignored) {
 
         } finally {
             if (site != null)
+            {
                 site.closeWebClient();
+                logger.info("Closed WebClient");
+            }
         }
-
     }
-
 
     private static boolean checkProperties() {
         return new File("user.properties").exists();
@@ -53,10 +65,10 @@ public class Start {
         Properties prop = new Properties();
         Scanner sc = new Scanner(System.in);
         try (OutputStream propFile = new FileOutputStream("user.properties")) {
-            System.out.println("Enter email:");
+            logger.info("Enter email:");
             prop.setProperty("email", sc.nextLine());
 
-            System.out.println("Enter password:");
+            logger.info("Enter password:");
             prop.setProperty("password", sc.nextLine());
 
             prop.store(propFile, null);
