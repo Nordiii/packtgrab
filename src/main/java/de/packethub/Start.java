@@ -22,13 +22,30 @@ public class Start {
                 logger.warn("Failed to create File");
         }
 
-        Properties prop = getProperties();
-        claimBookJob(prop);
+        Packtpub site = getSite(getProperties());
+
+        if(args.length == 0)
+            claimBookJob(site);
+        else
+            downloadBook(site);
         logger.warn("-");
 
     }
+    private static void  downloadBook(Packtpub site)
+    {
+        try
+        {
+            if (site.downloadBooks())
+                logger.info("Successfully claimed");
+        }catch (IOException e)
+        {
+            logger.error("wasn't able to download books ");
+            logger.catching(e);
+        }
+    }
 
-    private static void claimBookJob(Properties prop) {
+    private static Packtpub getSite(Properties prop)
+    {
         Packtpub site = null;
          /*
          * Try block for de.packethub.Packtpub as it throws IOExceptions
@@ -42,19 +59,29 @@ public class Start {
                 logger.error("Wasn't able to login");
                 throw new IOException();
             }
-            //Try to claim the book
-            if (site.getFreeBook())
-                logger.info("Successfully claimed");
 
         } catch (IOException ignored) {
-
-        } finally {
             if (site != null)
             {
                 site.closeWebClient();
                 logger.info("Closed WebClient");
             }
         }
+        return site;
+    }
+
+    private static void claimBookJob(Packtpub site) {
+
+        try
+        {
+            if (site.getFreeBook())
+                logger.info("Successfully claimed");
+        }catch (IOException e)
+        {
+            logger.error("wasn't able to claim the free book");
+            logger.catching(e);
+        }
+
     }
 
     private static boolean checkProperties() {
