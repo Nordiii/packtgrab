@@ -2,50 +2,61 @@ package de.packethub;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 import java.io.*;
 import java.util.Properties;
-import java.util.Scanner;
 
 public class Start {
     private static final Logger logger = LogManager.getLogger("PacketHub");
+    @Option(name = "-c", usage = "-c = enable claiming free book")
+    private boolean claim = false;
+
+    @Option(name = "-dl", usage = "-dl <extension> download books with the extension")
+    private String format = null;
+
+    Account account = new Account(logger);
 
     public static void main(String[] args) {
+        new Start().doStuff(args);
+    }
+
+    private void doStuff(String[] args) {
         /*
          * Check if user.properties exists
          * False = create new one
          */
-        logger.info("Checking properties file");
-        if (!checkProperties()) {
-            logger.info("Creating new user.properties");
-            if (!createProperties())
-                logger.warn("Failed to create File");
+        account.checkProperties();
+
+        CmdLineParser parser = new CmdLineParser(this);
+        try {
+            parser.parseArgument(args);
+        } catch (CmdLineException e) {
+            logger.error("Argument couldn't be parsed");
         }
+        Packtpub site = getSite(account.getProperties());
 
-        Packtpub site = getSite(getProperties());
-
-        if(args.length == 0)
+        if (claim)
             claimBookJob(site);
-        else
-            downloadBook(site);
+        if (format != null)
+            downloadBook(site, format);
+        site.closeWebClient();
         logger.warn("-");
-
     }
-    private static void  downloadBook(Packtpub site)
-    {
-        try
-        {
-            if (site.downloadBooks())
-                logger.info("Successfully claimed");
-        }catch (IOException e)
-        {
+
+    private void downloadBook(Packtpub site, String format) {
+        try {
+            if (site.downloadBooks(format))
+                logger.info("Finished downloading every available book with this format");
+        } catch (IOException e) {
             logger.error("wasn't able to download books ");
             logger.catching(e);
         }
     }
 
-    private static Packtpub getSite(Properties prop)
-    {
+    private Packtpub getSite(Properties prop) {
         Packtpub site = null;
          /*
          * Try block for de.packethub.Packtpub as it throws IOExceptions
@@ -61,8 +72,7 @@ public class Start {
             }
 
         } catch (IOException ignored) {
-            if (site != null)
-            {
+            if (site != null) {
                 site.closeWebClient();
                 logger.info("Closed WebClient");
             }
@@ -70,51 +80,16 @@ public class Start {
         return site;
     }
 
-    private static void claimBookJob(Packtpub site) {
+    private void claimBookJob(Packtpub site) {
 
-        try
-        {
+        try {
             if (site.getFreeBook())
                 logger.info("Successfully claimed");
-        }catch (IOException e)
-        {
+        } catch (IOException e) {
             logger.error("wasn't able to claim the free book");
             logger.catching(e);
         }
 
     }
 
-    private static boolean checkProperties() {
-        return new File("user.properties").exists();
-    }
-
-    private static boolean createProperties() {
-        Properties prop = new Properties();
-        Scanner sc = new Scanner(System.in);
-        try (OutputStream propFile = new FileOutputStream("user.properties")) {
-            logger.info("Enter email:");
-            prop.setProperty("email", sc.nextLine());
-
-            logger.info("Enter password:");
-            prop.setProperty("password", sc.nextLine());
-
-            prop.store(propFile, null);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            sc.close();
-        }
-        return checkProperties();
-    }
-
-    private static Properties getProperties() {
-        Properties prop = new Properties();
-        try (InputStream propFile = new FileInputStream("user.properties")) {
-            prop.load(propFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return prop;
-    }
 }

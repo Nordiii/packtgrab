@@ -53,3 +53,5 @@ fabric.properties
 
 #propertie
 user.properties
+downloads/
+logs/
